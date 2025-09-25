@@ -298,8 +298,9 @@ void criar_data_idx() {
 	printf(INDICE_CRIADO, "data_idx()");
 }
 
-// SEGUNDA VERSÃO LISTA INVERTIDA 
+
 void criar_treinador_bolsomons_idx() {
+
     // Inicializando os índices primário e secundário
     if (!treinador_bolsomons_idx.treinador_bolsomons_secundario_idx)
         treinador_bolsomons_idx.treinador_bolsomons_secundario_idx = malloc(MAX_REGISTROS * sizeof(treinador_bolsomons_secundario_index));
@@ -312,14 +313,27 @@ void criar_treinador_bolsomons_idx() {
         exit(1);
     }
 
-    treinador_bolsomons_secundario_index *sec_idx = treinador_bolsomons_idx.treinador_bolsomons_secundario_idx;
-    treinador_bolsomons_primario_index *prim_idx = treinador_bolsomons_idx.treinador_bolsomons_primario_idx;
-
     for(unsigned i = 0; i < qtd_registros_treinador_possui_bolsomon; i++){
+		// Recuperando o registro do treinador_possui_bolsomon
 		treinador_possui_bolsomon_index tpb_idx = treinador_possui_bolsomon_idx[i];
 
+		// Busco o rrn do bolsomon no índice de bolsomons
+		bolsomons_index chave_busca;
+		strcpy(chave_busca.id_bolsomon, tpb_idx.id_bolsomon);
+		bolsomons_index *b_idx = bsearch(&chave_busca, bolsomons_idx, qtd_registros_bolsomons, sizeof(bolsomons_index), qsort_bolsomons_idx);
+
+		// Se o bolsomon existir, recupero o registro para pegar o nome e insiro na lista invertida
+		if(b_idx && b_idx->rrn != -1){
+			Bolsomon b = recuperar_registro_bolsomon(b_idx->rrn);
+			inverted_list_insert(b.nome, tpb_idx.id_treinador, &treinador_bolsomons_idx);
+		}
 
 	}
+
+	// Por fim, ordeno o índice secundário
+	qsort(treinador_bolsomons_idx.treinador_bolsomons_secundario_idx, treinador_bolsomons_idx.qtd_registros_secundario, 
+          sizeof(treinador_bolsomons_secundario_index), 
+          qsort_treinador_bolsomons_secundario_idx);
 
 
     printf(INDICE_CRIADO, "treinador_bolsomons_primario_idx");
