@@ -129,9 +129,7 @@ int qsort_info_treinador(const void *a, const void *b) {
 
 /* Função de comparação entre chaves do índice secundário de treinador_bolsomons_secundario_idx */
 int qsort_treinador_bolsomons_secundario_idx(const void *a, const void *b) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "qsort_treinador_bolsomons_secundario_idx()");
-	return 0;
+	return strcmp(((treinador_bolsomons_secundario_index*)a)->chave_secundaria, ((treinador_bolsomons_secundario_index*)b)->chave_secundaria);
 }
 
 /* Função de comparação entre chaves do índice primário da lista invertida */
@@ -289,7 +287,6 @@ void criar_data_idx() {
 	for(unsigned i = 0; i < qtd_registros_batalhas; i++) {
 		Batalha b = recuperar_registro_batalha(i);
 
-		
 		strcpy(data_idx[i].id_batalha, b.id_batalha);
 		strcpy(data_idx[i].inicio, b.inicio);
 	}
@@ -488,15 +485,76 @@ void escrever_registro_treinador(Treinador t, int rrn) {
 	strncpy(ARQUIVO_TREINADORES + rrn * TAM_REGISTRO_TREINADOR, buffer, TAM_REGISTRO_TREINADOR);
 }
 
+/*
+Bolsomon b = {
+	char id_bolsomon[TAM_ID_BOLSOMON];
+	char nome[TAM_MAX_NOME_BOLSOMON];
+	char habilidade[TAM_MAX_HABILIDADE_BOLSOMON];
+	double preco_bolsobolas;
+};*/
+
 void escrever_registro_bolsomon(Bolsomon b, int rrn) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "escrever_registro_bolsomon()");
+
+	// Criando duas variáveis locais temporárias para construir o registro
+	char buffer[TAM_REGISTRO_BOLSOMON + 1], double_preco[100];
+	buffer[0] = '\0';
+	double_preco[0] = '\0';
+
+	// Atribuo o valor do registro à variável buffer, formatando conforme o especificado
+	strcat(buffer, b.id_bolsomon); strcat(buffer, ";"); // Coloco um ';' como delimitador após cada campo
+	strcat(buffer, b.nome); strcat(buffer, ";");
+	strcat(buffer, b.habilidade); strcat(buffer, ";");
+	sprintf(double_preco, "%013.2lf", b.preco_bolsobolas); // Formato o double para uma string com 2 casas decimais e 13 caracteres
+	strcat(buffer, double_preco); strcat(buffer, ";");
+
+	// Preencho o restante do registro com '#' para completar o tamanho fixo
+	strpadright(buffer, '#', TAM_REGISTRO_BOLSOMON);
+
+	// Finalmente, copio o registro formatado para o arquivo de dados na posição correta
+	strncpy(ARQUIVO_BOLSOMONS + rrn * TAM_REGISTRO_BOLSOMON, buffer, TAM_REGISTRO_BOLSOMON);
+
+	printf(SUCESSO, "escrever_registro_bolsomon()");
 }
 
+/*
+Batalha ba{
+	char id_batalha[TAM_ID_BATALHA];
+	char inicio[TAM_INICIO_BATALHA];
+	char duracao[TAM_DURACAO_BATALHA];
+	char arena[TAM_ARENA_BATALHA];
+};
+*/
+
+
 void escrever_registro_batalha(Batalha b, int rrn) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "escrever_registro_batalha()");
+
+	// Mesma rotina de escrever_registro_bolsomon(), adaptada para a struct Batalha
+
+	char buffer[TAM_REGISTRO_BATALHA + 1];
+	buffer[0] = '\0';
+
+	strcat(buffer, b.id_batalha); strcat(buffer, ";");
+	strcat(buffer, b.inicio); strcat(buffer, ";");
+	strcat(buffer, b.duracao); strcat(buffer, ";");
+	strcat(buffer, b.arena); strcat(buffer, ";");
+
+	strpadright(buffer, '#', TAM_REGISTRO_BATALHA);
+
+	STRNCPY(ARQUIVO_BATALHAS + rrn * TAM_REGISTRO_BATALHA, buffer, TAM_REGISTRO_BATALHA);
+
+	printf(SUCESSO, "escrever_registro_batalha()");
 }
+
+/*
+Resultado r = {
+	char id_treinador[TAM_ID_TREINADOR];
+	char id_batalha[TAM_ID_BATALHA];
+	char id_bolsomon[TAM_ID_BOLSOMON];
+	bool foi_maior_duracao;
+	bool foi_mais_derrotas;
+	bool foi_mais_dano;
+}
+*/
 
 void escrever_registro_resultado(Resultado r, int rrn) {
 	/*IMPLEMENTE A FUNÇÃO AQUI*/
