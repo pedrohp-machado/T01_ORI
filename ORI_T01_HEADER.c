@@ -557,8 +557,20 @@ Resultado r = {
 */
 
 void escrever_registro_resultado(Resultado r, int rrn) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "escrever_registro_resultado()");
+
+	char buffer[TAM_REGISTRO_RESULTADO + 1];
+	buffer[0] = '\0';
+
+	// Para garantir que os campos tenham o tamanho correto, uso sprintf com especificadores de largura
+	// Isso é necessário pois os campos não possuem delimitadores e têm tamanhos fixos
+	sprintf(buffer, "%.11s%.8s%.3s", r.id_treinador, r.id_batalha, r.id_bolsomon);
+
+	// Convertendo os booleanos para '1' e '0' e concatenando ao buffer
+	strcat(buffer, r.foi_maior_duracao ? "1" : "0"); 
+	strcat(buffer, r.foi_mais_derrotas ? "1" : "0");
+	strcat(buffer, r.foi_mais_dano ? "1" : "0"); 
+	
+	printf(SUCESSO, "escrever_registro_resultado()");
 }
 
 void escrever_registro_treinador_possui_bolsomon(TreinadorPossuiBolsomon tpb, int rrn) {
