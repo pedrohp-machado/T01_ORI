@@ -16,7 +16,6 @@
 
 // Defina aqui protótipos de funções auxiliares e macros (se quiser)
 
-
 // Arquivos de dados
 char ARQUIVO_TREINADORES[TAM_ARQUIVO_TREINADORES];
 char ARQUIVO_BOLSOMONS[TAM_ARQUIVO_BOLSOMONS];
@@ -299,28 +298,32 @@ void criar_data_idx() {
 	printf(INDICE_CRIADO, "data_idx()");
 }
 
+// SEGUNDA VERSÃO LISTA INVERTIDA 
 void criar_treinador_bolsomons_idx() {
+    // Inicializando os índices primário e secundário
+    if (!treinador_bolsomons_idx.treinador_bolsomons_secundario_idx)
+        treinador_bolsomons_idx.treinador_bolsomons_secundario_idx = malloc(MAX_REGISTROS * sizeof(treinador_bolsomons_secundario_index));
 
-	if(!treinador_bolsomons_idx.treinador_bolsomons_secundario_idx)
-		treinador_bolsomons_idx.treinador_bolsomons_secundario_idx = malloc(MAX_REGISTROS * sizeof(treinador_bolsomons_secundario_index));
+    if (!treinador_bolsomons_idx.treinador_bolsomons_primario_idx)
+        treinador_bolsomons_idx.treinador_bolsomons_primario_idx = malloc(MAX_REGISTROS * sizeof(treinador_bolsomons_primario_index));
 
-	if(!treinador_bolsomons_idx.treinador_bolsomons_primario_idx)
-		treinador_bolsomons_idx.treinador_bolsomons_primario_idx = malloc(MAX_REGISTROS * sizeof(treinador_bolsomons_primario_index));
+    if (!treinador_bolsomons_idx.treinador_bolsomons_secundario_idx || !treinador_bolsomons_idx.treinador_bolsomons_primario_idx) {
+        printf(ERRO_MEMORIA_INSUFICIENTE);
+        exit(1);
+    }
 
-	if(!treinador_bolsomons_idx.treinador_bolsomons_secundario_idx || !treinador_bolsomons_idx.treinador_bolsomons_primario_idx) {
-		printf(ERRO_MEMORIA_INSUFICIENTE);
-		exit(1);
+    treinador_bolsomons_secundario_index *sec_idx = treinador_bolsomons_idx.treinador_bolsomons_secundario_idx;
+    treinador_bolsomons_primario_index *prim_idx = treinador_bolsomons_idx.treinador_bolsomons_primario_idx;
+
+    for(unsigned i = 0; i < qtd_registros_treinador_possui_bolsomon; i++){
+		treinador_possui_bolsomon_index tpb_idx = treinador_possui_bolsomon_idx[i];
+
+
 	}
-	treinador_bolsomons_idx.qtd_registros_secundario = 0;
-	treinador_bolsomons_idx.qtd_registros_primario = 0;
-
-	TreinadorPossuiBolsomon tpb ;
 
 
-
-
-
-	printf(ERRO_NAO_IMPLEMENTADO, "criar_treinador_bolsomons_idx()");
+    printf(INDICE_CRIADO, "treinador_bolsomons_primario_idx");
+    printf(INDICE_CRIADO, "treinador_bolsomons_secundario_idx");
 }
 
 // ---------------- Recuperação do registro ----------------
@@ -700,8 +703,49 @@ void liberar_memoria_menu() {
 // ---------------- Manipulação da lista invertida ----------------
 
 void inverted_list_insert(char *chave_secundaria, char *chave_primaria, inverted_list *t) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "inverted_list_insert()");
+	
+	treinador_bolsomons_secundario_index *sec_idx = t->treinador_bolsomons_secundario_idx;
+	treinador_bolsomons_primario_index *prim_idx = t->treinador_bolsomons_primario_idx;
+
+	int *prim_count = &t->qtd_registros_primario;
+	int *sec_count = &t->qtd_registros_secundario;
+
+	// Verifica se a chave secundária já existe no índice secundário
+	int sec_idx_pos = -1;
+	for(unsigned i = 0; i < *sec_count; i++) {
+		if(strcmp(sec_idx[i].chave_secundaria, chave_secundaria) == 0) {
+			sec_idx_pos = i;
+			break;
+		}
+	}
+
+	// Se a chave secundária não existe, cria uma nova entrada no índice secundário
+	if(sec_idx_pos == -1) {
+		// Atualiza a chave secundária e incrementa o contador do índice secundário
+		sec_idx_pos = (*sec_count)++;
+		strcpy(sec_idx[sec_idx_pos].chave_secundaria, chave_secundaria);
+
+		// Inicializa o índice primário associado
+		sec_idx[sec_idx_pos].primeiro_indice = *prim_count;
+
+		// Atualiza o índice primário
+		strcpy(prim_idx[*prim_count].chave_primaria, chave_primaria);
+		prim_idx[*prim_count].proximo_indice = -1; // Como é o começo da lista, não há próximo
+		(*prim_count)++;
+	} else{
+		// Se a chave secundária já existe, adiciona a chave primária ao final da lista ligada
+		// Como a ordem do índice primário é irrelevante, adicionamos no começo da lista
+
+		int current_index = sec_idx[sec_idx_pos].primeiro_indice;
+		int novo_index = (*prim_count)++;
+
+		strcpy(prim_idx[novo_index].chave_primaria, chave_primaria);
+		prim_idx[novo_index].proximo_indice = current_index; // O próximo é o antigo primeiro índice
+
+		sec_idx[sec_idx_pos].primeiro_indice = novo_index; // Atualiza o primeiro índice para o novo
+	}
+	
+	printf(SUCESSO, "inverted_list_insert()");
 }
 
 bool inverted_list_secondary_search(int *result, bool exibir_caminho, char *chave_secundaria, inverted_list *t) {
