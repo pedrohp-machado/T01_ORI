@@ -540,7 +540,7 @@ void escrever_registro_batalha(Batalha b, int rrn) {
 
 	strpadright(buffer, '#', TAM_REGISTRO_BATALHA);
 
-	STRNCPY(ARQUIVO_BATALHAS + rrn * TAM_REGISTRO_BATALHA, buffer, TAM_REGISTRO_BATALHA);
+	strncpy(ARQUIVO_BATALHAS + rrn * TAM_REGISTRO_BATALHA, buffer, TAM_REGISTRO_BATALHA);
 
 	printf(SUCESSO, "escrever_registro_batalha()");
 }
