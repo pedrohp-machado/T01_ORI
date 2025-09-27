@@ -263,15 +263,14 @@ void criar_preco_bolsomon_idx() {
 	}
 
 	for(unsigned i = 0; i < qtd_registros_bolsomons; i++) {
-	
-		TreinadorPossuiBolsomon tpb = recuperar_registro_treinador_possui_bolsomon(i);
+		Bolsomon b = recuperar_registro_bolsomon(i);
 
-		treinador_possui_bolsomon_idx[i].rrn = i;
-		strcpy(treinador_possui_bolsomon_idx[i].id_treinador, tpb.id_treinador);
-		strcpy(treinador_possui_bolsomon_idx[i].id_bolsomon, tpb.id_bolsomon);
+		strcpy(preco_bolsomon_idx[i].id_bolsomon, b.id_bolsomon);
+		preco_bolsomon_idx[i].preco_bolsobolas = b.preco_bolsobolas;
 	}
 
-	qsort(treinador_possui_bolsomon_idx, qtd_registros_treinador_possui_bolsomon, sizeof(treinador_possui_bolsomon_index), qsort_treinador_possui_bolsomon_idx);
+	qsort(treinador_possui_bolsomon_idx, qtd_registros_treinador_possui_bolsomon, 
+		sizeof(preco_bolsomon_idx), qsort_preco_bolsomon_idx);
 	printf(INDICE_CRIADO, "treinador_possui_bolsomon_idx()");
 }
 
@@ -667,7 +666,9 @@ void remover_treinador_menu(char *id_treinador) {
 	}
 
 	// Se o treinador existir, marco o registro como removido no arquivo de dados
-	strncpy(ARQUIVO_TREINADORES + (encontrado->rrn * TAM_REGISTRO_TREINADOR), "*|", 2);
+	char *p = ARQUIVO_TREINADORES + (encontrado->rrn * TAM_REGISTRO_TREINADOR);
+	// Faço atribuiçao manual para evitar o warning do strncpy
+	p[0] = '*'; p[1] = '|';
 
 	// Atualizo o índice de treinadores marcando o RRN como -1 (removido)
 	encontrado->rrn = -1;
@@ -710,8 +711,37 @@ void adicionar_bolsobolas(char *id_treinador, double valor, bool flag){
 }
 
 void cadastrar_bolsomon_menu(char *nome, char *habilidade, double preco) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "cadastrar_bolsomon_menu()");
+
+	// Crio a struct do novo bolsomon com os dados fornecidos
+	Bolsomon novo_bolsomon;
+	strcpy(novo_bolsomon.nome, nome);
+	strcpy(novo_bolsomon.habilidade, habilidade);
+	novo_bolsomon.preco_bolsobolas = preco;
+
+	// Gero um novo ID para o bolsomon baseado na quantidade atual de registros
+	unsigned novo_id = qtd_registros_bolsomons;
+	sprintf(novo_bolsomon.id_bolsomon, "%03u", novo_id); // Formato o ID com 3 dígitos, preenchendo com zeros à esquerda
+
+	// Escrevo o novo registro no arquivo de dados na posição do próximo RRN disponível
+	escrever_registro_bolsomon(novo_bolsomon, qtd_registros_bolsomons);
+
+	// Atualizo o índice de bolsomons e a quantidade de registros
+	bolsomons_idx[qtd_registros_bolsomons].rrn = qtd_registros_bolsomons;
+	strcpy(bolsomons_idx[qtd_registros_bolsomons].id_bolsomon, novo_bolsomon.id_bolsomon);
+
+	// Também atualizo o índice de preço de bolsomons, se ele existir
+	if(preco_bolsomon_idx){
+		preco_bolsomon_idx[qtd_registros_bolsomons].preco_bolsobolas = preco;
+		strcpy(preco_bolsomon_idx[qtd_registros_bolsomons].id_bolsomon, novo_bolsomon.id_bolsomon);
+	}
+
+	qtd_registros_bolsomons++;
+
+	// Reordeno os índices para manter a ordenação
+	qsort(bolsomons_idx, qtd_registros_bolsomons, sizeof(bolsomons_index), qsort_bolsomons_idx);
+	qsort(preco_bolsomon_idx, qtd_registros_bolsomons, sizeof(preco_bolsomon_index), qsort_preco_bolsomon_idx);
+
+	printf(SUCESSO);
 }
 
 void comprar_bolsomon_menu(char *id_treinador, char *id_bolsomon) {
@@ -788,8 +818,11 @@ void imprimir_arquivo_treinadores_menu() {
 }
 
 void imprimir_arquivo_bolsomons_menu() {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "imprimir_arquivo_bolsomons_menu()");
+	if(!qtd_registros_bolsomons){
+		printf(ERRO_ARQUIVO_VAZIO);
+        return;
+    }
+	printf("%s\n", ARQUIVO_BOLSOMONS);
 }
 
 void imprimir_arquivo_batalhas_menu() {
@@ -819,8 +852,12 @@ void imprimir_treinadores_idx_menu() {
 }
 
 void imprimir_bolsomons_idx_menu() {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "imprimir_bolsomons_idx_menu()");
+	if(!bolsomons_idx || !qtd_registros_bolsomons){
+		printf(ERRO_ARQUIVO_VAZIO);
+        return;
+    }
+	for(unsigned i = 0; i < qtd_registros_bolsomons; i++)
+		printf("%s, %d\n", bolsomons_idx[i].id_bolsomon, bolsomons_idx[i].rrn);
 }
 
 void imprimir_batalhas_idx_menu() {
@@ -839,8 +876,12 @@ void imprimir_treinador_possui_bolsomon_idx_menu() {
 }
 
 void imprimir_preco_bolsomon_idx_menu() {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "imprimir_preco_bolsomon_idx_menu()");
+	if(!preco_bolsomon_idx || !qtd_registros_bolsomons){
+		printf(ERRO_ARQUIVO_VAZIO);
+        return;
+    }
+	for(unsigned i = 0; i < qtd_registros_bolsomons; i++)
+		printf("%.2lf, %s\n", preco_bolsomon_idx[i].preco_bolsobolas, preco_bolsomon_idx[i].id_bolsomon);
 }
 
 void imprimir_data_idx_menu() {
@@ -866,8 +907,27 @@ void liberar_espaco_menu() {
 }
 
 void liberar_memoria_menu() {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "liberar_memoria_menu()");
+	
+	// Libero a memória alocada para os índices 
+	if(treinadores_idx) free(treinadores_idx);
+	
+	if(bolsomons_idx) free(bolsomons_idx);
+	
+	if(batalhas_idx) free(batalhas_idx);
+	
+	if(resultados_idx) free(resultados_idx);
+	
+	if(treinador_possui_bolsomon_idx) free(treinador_possui_bolsomon_idx);
+	
+	if(preco_bolsomon_idx) free(preco_bolsomon_idx);
+	
+	if(data_idx) free(data_idx);
+	
+	if(treinador_bolsomons_idx.treinador_bolsomons_secundario_idx) 
+		free(treinador_bolsomons_idx.treinador_bolsomons_secundario_idx);
+	if(treinador_bolsomons_idx.treinador_bolsomons_primario_idx) 
+		free(treinador_bolsomons_idx.treinador_bolsomons_primario_idx);	
+
 }
 
 // ---------------- Manipulação da lista invertida ----------------
