@@ -393,7 +393,7 @@ Bolsomon recuperar_registro_bolsomon(int rrn) {
 Batalha recuperar_registro_batalha(int rrn) {
 
 	//Criando duas variáveis locais temporárias para fazer a recuperação e parsing do registro
-	char buffer[TAM_REGISTRO_BATALHA + 1], *p;
+	char buffer[TAM_REGISTRO_BATALHA + 1];
 	Batalha ba;
 
 	//Recuperando o registro bruto do arquivo a partir do rrn e colocando na variável buffer
@@ -423,7 +423,7 @@ Batalha recuperar_registro_batalha(int rrn) {
 
 Resultado recuperar_registro_resultado(int rrn) {
 	
-	char buffer[TAM_REGISTRO_RESULTADO + 1], *p;
+	char buffer[TAM_REGISTRO_RESULTADO + 1];
 	strncpy(buffer, ARQUIVO_RESULTADOS + (rrn * TAM_REGISTRO_RESULTADO), TAM_REGISTRO_RESULTADO);
 	buffer[TAM_REGISTRO_RESULTADO] = '\0';
 
@@ -513,7 +513,7 @@ void escrever_registro_bolsomon(Bolsomon b, int rrn) {
 	// Finalmente, copio o registro formatado para o arquivo de dados na posição correta
 	strncpy(ARQUIVO_BOLSOMONS + rrn * TAM_REGISTRO_BOLSOMON, buffer, TAM_REGISTRO_BOLSOMON);
 
-	printf(SUCESSO, "escrever_registro_bolsomon()");
+	printf("escrever_registro_bolsomon() FEITO\n");
 }
 
 /*
@@ -542,7 +542,7 @@ void escrever_registro_batalha(Batalha b, int rrn) {
 
 	strncpy(ARQUIVO_BATALHAS + rrn * TAM_REGISTRO_BATALHA, buffer, TAM_REGISTRO_BATALHA);
 
-	printf(SUCESSO, "escrever_registro_batalha()");
+	printf("escrever_registro_batalha() FEITO\n");
 }
 
 /*
@@ -569,13 +569,26 @@ void escrever_registro_resultado(Resultado r, int rrn) {
 	strcat(buffer, r.foi_maior_duracao ? "1" : "0"); 
 	strcat(buffer, r.foi_mais_derrotas ? "1" : "0");
 	strcat(buffer, r.foi_mais_dano ? "1" : "0"); 
-	
-	printf(SUCESSO, "escrever_registro_resultado()");
+
+	strncpy(ARQUIVO_RESULTADOS + rrn*TAM_ARQUIVO_RESULTADOS, buffer, TAM_REGISTRO_RESULTADO);
+	printf("escrever_registro_resultado() FEITO\n");
 }
 
+/*
+TreinadorPossuiBolsomon tpb = {
+	char id_treinador[TAM_ID_TREINADOR];
+	char id_bolsomon[TAM_ID_BOLSOMON];
+};*/
+
 void escrever_registro_treinador_possui_bolsomon(TreinadorPossuiBolsomon tpb, int rrn) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "escrever_registro_treinador_possui_bolsomon()");
+
+	char buffer[TAM_REGISTRO_TREINADOR_POSSUI_BOLSOMON + 1];
+	buffer[0] = '\0';
+
+	sprintf(buffer, "%.11s%.3s", tpb.id_treinador, tpb.id_bolsomon);
+
+	strncpy(ARQUIVO_TREINADOR_POSSUI_BOLSOMON + rrn * TAM_REGISTRO_TREINADOR_POSSUI_BOLSOMON, buffer, TAM_REGISTRO_TREINADOR_POSSUI_BOLSOMON);
+	printf("escrever_registro_treinador_possui_bolsomon() FEITO");
 }
 
 // ---------------- Exibição dos registros ----------------
@@ -605,13 +618,61 @@ bool exibir_batalha(int rrn) {
 // ---------------- Funções principais ----------------
 
 void cadastrar_treinador_menu(char *id_treinador, char *apelido) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "cadastrar_treinador_menu()");
+	
+	// Primeiro, busco o rrn do treinador no índice para verificar se ele já existe
+	treinadores_index chave_busca;
+	strcpy(chave_busca.id_treinador, id_treinador);
+	treinadores_index *encontrado = bsearch(&chave_busca, treinadores_idx, qtd_registros_treinadores, sizeof(treinadores_index), qsort_treinadores_idx);
+	
+	if(encontrado && encontrado->rrn != -1){
+		// Se o treinador já existir, exibo a mensagem de erro e retorno
+		printf(ERRO_PK_REPETIDA, id_treinador);
+		return;
+	}
+
+	// Se o treinador não existir, crio a struct Treinador com os dados fornecidos
+	Treinador novo_treinador;
+	strcpy(novo_treinador.id_treinador, id_treinador);
+	strcpy(novo_treinador.apelido, apelido);
+	novo_treinador.bolsobolas = 0.0;
+	strcpy(novo_treinador.premio, "000000000000"); // Inicializo o campo premio como string vazia
+	current_date(novo_treinador.cadastro); // Preencho o campo cadastro com a data atual
+
+	// Escrevo o novo treinador no arquivo de dados na posição do próximo RRN disponível
+	escrever_registro_treinador(novo_treinador, qtd_registros_treinadores);
+
+	// Atualizo o índice de treinadores e a quantidade de registros
+	treinadores_idx[qtd_registros_treinadores].rrn = qtd_registros_treinadores;
+	strcpy(treinadores_idx[qtd_registros_treinadores].id_treinador, id_treinador);
+	qtd_registros_treinadores++;
+
+	// Reordeno o índice de treinadores para manter a ordenação
+	qsort(treinadores_idx, qtd_registros_treinadores, sizeof(treinadores_index), qsort_treinadores_idx);
+
+	printf(SUCESSO);
 }
 
 void remover_treinador_menu(char *id_treinador) {
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "remover_treinador_menu()");
+
+	// Primeiro, busco o rrn do treinador no índice para verificar se ele existe
+	treinadores_index chave_busca;
+	strcpy(chave_busca.id_treinador, id_treinador);
+	treinadores_index *encontrado = bsearch(&chave_busca, treinadores_idx, qtd_registros_treinadores, 
+		sizeof(treinadores_index), qsort_treinadores_idx);
+
+	if(!encontrado || encontrado->rrn == -1){
+		// Se o treinador não existir, exibo a mensagem de erro e retorno
+		printf(ERRO_REGISTRO_NAO_ENCONTRADO);
+		return;
+	}
+
+	// Se o treinador existir, marco o registro como removido no arquivo de dados
+	strncpy(ARQUIVO_TREINADORES + (encontrado->rrn * TAM_REGISTRO_TREINADOR), "*|", 2);
+
+	// Atualizo o índice de treinadores marcando o RRN como -1 (removido)
+	encontrado->rrn = -1;
+
+	printf(SUCESSO);
 }
 
 void adicionar_bolsobolas_menu(char *id_treinador, double valor) {
@@ -619,8 +680,33 @@ void adicionar_bolsobolas_menu(char *id_treinador, double valor) {
 }
 
 void adicionar_bolsobolas(char *id_treinador, double valor, bool flag){
-	/*IMPLEMENTE A FUNÇÃO AQUI*/
-	printf(ERRO_NAO_IMPLEMENTADO, "adicionar_bolsobolas()");
+
+	// Verifico se o valor adicionado é positivo
+	if(valor <=0){
+		printf(ERRO_VALOR_INVALIDO);
+		return;
+	}
+
+	// Busco o treinador no índice
+	treinadores_index chave_busca;
+	strcpy(chave_busca.id_treinador, id_treinador);
+	treinadores_index *encontrado = bsearch(&chave_busca, treinadores_idx, 
+		qtd_registros_treinadores, sizeof(treinadores_index), qsort_treinadores_idx);
+	
+	if(!encontrado || encontrado->rrn == -1){
+		// Se o treinador não existir, exibo a mensagem de erro e retorno
+		printf(ERRO_REGISTRO_NAO_ENCONTRADO);
+		return;
+	}
+
+	// Se o treinador existir, recupero o registro e atualizo o campo de bolsobolas
+	Treinador t = recuperar_registro_treinador(encontrado->rrn);
+	t.bolsobolas += valor;
+
+	// Escrevo o registro atualizado de volta no arquivo de dados
+	escrever_registro_treinador(t, encontrado->rrn);
+
+	if(flag) printf(SUCESSO);	
 }
 
 void cadastrar_bolsomon_menu(char *nome, char *habilidade, double preco) {
@@ -791,8 +877,8 @@ void inverted_list_insert(char *chave_secundaria, char *chave_primaria, inverted
 	treinador_bolsomons_secundario_index *sec_idx = t->treinador_bolsomons_secundario_idx;
 	treinador_bolsomons_primario_index *prim_idx = t->treinador_bolsomons_primario_idx;
 
-	int *prim_count = &t->qtd_registros_primario;
-	int *sec_count = &t->qtd_registros_secundario;
+	unsigned int *prim_count = &t->qtd_registros_primario;
+	unsigned int *sec_count = &t->qtd_registros_secundario;
 
 	// Verifica se a chave secundária já existe no índice secundário
 	int sec_idx_pos = -1;
@@ -828,9 +914,7 @@ void inverted_list_insert(char *chave_secundaria, char *chave_primaria, inverted
 
 		sec_idx[sec_idx_pos].primeiro_indice = novo_index; // Atualiza o primeiro índice para o novo
 	}
-	
-	printf(SUCESSO, "inverted_list_insert()");
-}
+	}
 
 bool inverted_list_secondary_search(int *result, bool exibir_caminho, char *chave_secundaria, inverted_list *t) {
 	/*IMPLEMENTE A FUNÇÃO AQUI*/
