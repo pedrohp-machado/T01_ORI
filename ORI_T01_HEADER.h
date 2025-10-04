@@ -84,9 +84,9 @@ Trabalho 01 - Indexação
 #define ERRO_ARQUIVO_VAZIO               "ERRO: Arquivo vazio\n"
 #define ERRO_NAO_IMPLEMENTADO            "ERRO: Funcao %s nao implementada\n"
 #define ERRO_BOLSOMON_REPETIDO                "ERRO: O treinador %s já possui o bolsomon %s\n"
-#define CONCEDER_PREMIO					 "O treinador %s, com %d vitorias e %d bolsomons derrotados foi recompensado com %.2lf de bolsobolas\n"
+#define CONCEDER_PREMIO					 "O treinador %s com o melhor desempenho (Vitórias em Duração: %d, Vitórias em Derrotas: %d, Vitórias em Dano: %d) foi recompensado com %.2lf de bolsobolas.\n"
 #define ERRO_TREINADOR_BOLSOMON	             "ERRO: O treinador %s nao possui o bolsomon %s\n"
-#define ERRO_TREINADOR_REMOVIDO			 "Devido a remocao do treinador top 1, o premio de %.2lf sera concedido ao treinador %s, com %d vitorias e %d bolsomons derrotados\n"
+#define ERRO_TREINADOR_REMOVIDO			 "O treinador com melhor desempenho foi removido. O prêmio de %.2lf será concedido ao treinador %s (Vitórias em Duração: %d, Vitórias em Derrotas: %d,  Vitórias em Dano: %d).\n"
 
 // ---------------------- Registros principais ----------------------
 
